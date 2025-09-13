@@ -18,6 +18,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { ArrowRight, Loader2, Mail, UserX } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -25,6 +27,7 @@ interface AuthProps {
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const setProfile = useMutation(api.users.setProfile);
   const navigate = useNavigate();
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
@@ -37,6 +40,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       navigate(redirect);
     }
   }, [authLoading, isAuthenticated, navigate, redirectAfterAuth]);
+
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -92,6 +96,25 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       console.error("Guest login error:", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
       setError(`Failed to sign in as guest: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsLoading(false);
+    }
+  };
+
+  const quickSignIn = async (role: "teacher" | "student") => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await signIn("anonymous");
+      await setProfile({
+        role,
+        name: role === "teacher" ? "Demo Teacher" : "Demo Student",
+        subjects: role === "teacher" ? ["Statistics", "Computer Science", "AP English", "Social Studies"] : undefined,
+      });
+      const redirect = redirectAfterAuth || "/dashboard";
+      navigate(redirect);
+    } catch (error) {
+      console.error("Quick sign-in error:", error);
+      setError("Failed to continue without email. Please try again.");
       setIsLoading(false);
     }
   };
@@ -166,16 +189,26 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       </div>
                     </div>
                     
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={handleGuestLogin}
-                      disabled={isLoading}
-                    >
-                      <UserX className="mr-2 h-4 w-4" />
-                      Continue as Guest
-                    </Button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => quickSignIn("teacher")}
+                        disabled={isLoading}
+                      >
+                        Continue as Teacher (no email)
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => quickSignIn("student")}
+                        disabled={isLoading}
+                      >
+                        Continue as Student (no email)
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </form>

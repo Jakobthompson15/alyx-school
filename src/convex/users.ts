@@ -1,5 +1,8 @@
+import { mutation, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
+import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, QueryCtx } from "./_generated/server";
+import { roleValidator, subjectValidator } from "./schema";
 
 /**
  * Get the current signed in user. Returns null if the user is not signed in.
@@ -31,3 +34,25 @@ export const getCurrentUser = async (ctx: QueryCtx) => {
   }
   return await ctx.db.get(userId);
 };
+
+// Add profile/role setter for anonymous users to quickly start without email auth
+export const setProfile = mutation({
+  args: {
+    role: roleValidator,
+    name: v.optional(v.string()),
+    subjects: v.optional(v.array(subjectValidator)),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const updates: Record<string, any> = {
+      role: args.role,
+    };
+    if (args.name) updates.name = args.name;
+    if (args.role === "teacher") {
+      updates.subjects = args.subjects ?? ["Statistics", "Computer Science", "AP English", "Social Studies"];
+    }
+    await ctx.db.patch(userId, updates);
+    return true;
+  },
+});

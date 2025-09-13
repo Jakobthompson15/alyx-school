@@ -8,7 +8,7 @@ export const gradeSubmission: any = action({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args): Promise<{ success: boolean; totalScore?: number; maxScore?: number; error?: string }> => {
     // Get submission and assignment details
-    const submission: any = await ctx.runQuery(internal.grading.getSubmissionDetails, {
+    const submission: any = await ctx.runQuery(internal.grading_internal.getSubmissionDetails, {
       submissionId: args.submissionId,
     });
 
@@ -63,7 +63,7 @@ export const gradeSubmission: any = action({
     }
 
     // Update submission with grades
-    await ctx.runMutation(internal.grading.updateSubmissionGrades, {
+    await ctx.runMutation(internal.grading_internal.updateSubmissionGrades, {
       submissionId: args.submissionId,
       answers: gradedAnswers,
       totalScore,

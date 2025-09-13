@@ -12,7 +12,7 @@ export const create = mutation({
     content: v.string(),
     fileId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; assignmentId?: string; error?: string }> => {
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
     if (!user || user.role !== "teacher") {
       throw new Error("Only teachers can create lesson plans");
@@ -46,7 +46,7 @@ export const getByTeacher = query({
 export const generateQuizFromLessonPlan: any = action({
   args: { lessonPlanId: v.id("lessonPlans") },
   handler: async (ctx, args) => {
-    const lessonPlan: any = await ctx.runQuery(internal.lessonPlans.getLessonPlan, {
+    const lessonPlan: any = await ctx.runQuery(internal.lessonPlans_internal.getLessonPlan, {
       lessonPlanId: args.lessonPlanId,
     });
 
@@ -57,14 +57,14 @@ export const generateQuizFromLessonPlan: any = action({
     try {
       const quiz = await generateQuizFromContent(lessonPlan.content, lessonPlan.subject);
       
-      const assignmentId: any = await ctx.runMutation(internal.lessonPlans.createQuizAssignment, {
+      const assignmentId: any = await ctx.runMutation(internal.lessonPlans_internal.createQuizAssignment, {
         title: `Quiz: ${lessonPlan.title}`,
         subject: lessonPlan.subject,
         teacherId: lessonPlan.teacherId,
         questions: quiz.questions,
       });
 
-      await ctx.runMutation(internal.lessonPlans.linkQuizToLessonPlan, {
+      await ctx.runMutation(internal.lessonPlans_internal.linkQuizToLessonPlan, {
         lessonPlanId: args.lessonPlanId,
         quizId: assignmentId,
       });
