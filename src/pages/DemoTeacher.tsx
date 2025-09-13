@@ -6,26 +6,27 @@ import { LogOut, Plus, BookOpen, FileText, Users, BarChart3, Eye, Sparkles } fro
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { mockAssignments, mockLessonPlans } from "@/data/mockData";
+import CreateAssignmentDemo from "@/components/CreateAssignmentDemo";
+import CreateLessonPlanDemo from "@/components/CreateLessonPlanDemo";
+import { useState } from "react";
 
 const SUBJECTS = ["Statistics", "Computer Science", "AP English", "Social Studies"];
 
-const mockAssignments = [
-  { id: 1, title: "Probability Distributions", subject: "Statistics", questions: 8, points: 100, published: true },
-  { id: 2, title: "Data Structures Quiz", subject: "Computer Science", questions: 12, points: 150, published: false },
-  { id: 3, title: "Shakespeare Analysis", subject: "AP English", questions: 6, points: 80, published: true },
-];
-
-const mockLessonPlans = [
-  { id: 1, title: "Introduction to Machine Learning", subject: "Computer Science", hasQuiz: false },
-  { id: 2, title: "Statistical Inference", subject: "Statistics", hasQuiz: true },
-  { id: 3, title: "Literary Devices in Poetry", subject: "AP English", hasQuiz: false },
-];
-
 export default function DemoTeacher() {
   const navigate = useNavigate();
+  const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0]);
+  const [showCreateAssignment, setShowCreateAssignment] = useState(false);
+  const [showCreateLessonPlan, setShowCreateLessonPlan] = useState(false);
 
   const handleDemo = (action: string) => {
-    toast.info(`Demo: ${action} functionality would work here with full backend!`);
+    if (action === "Create Assignment") {
+      setShowCreateAssignment(true);
+    } else if (action === "Create Lesson Plan") {
+      setShowCreateLessonPlan(true);
+    } else {
+      toast.info(`Demo: ${action} functionality would work here with full backend!`);
+    }
   };
 
   return (
@@ -86,7 +87,7 @@ export default function DemoTeacher() {
                   <FileText className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">12</p>
+                  <p className="text-2xl font-bold">{mockAssignments.length}</p>
                   <p className="text-sm text-muted-foreground">Assignments</p>
                 </div>
               </div>
@@ -100,7 +101,7 @@ export default function DemoTeacher() {
                   <BookOpen className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">8</p>
+                  <p className="text-2xl font-bold">{mockLessonPlans.length}</p>
                   <p className="text-sm text-muted-foreground">Lesson Plans</p>
                 </div>
               </div>
@@ -142,7 +143,7 @@ export default function DemoTeacher() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Tabs defaultValue="Statistics">
+          <Tabs value={selectedSubject} onValueChange={setSelectedSubject}>
             <div className="flex items-center justify-between mb-6">
               <TabsList className="grid w-full max-w-2xl grid-cols-4">
                 {SUBJECTS.map((subject) => (
@@ -197,7 +198,7 @@ export default function DemoTeacher() {
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                  {assignment.questions} questions • {assignment.points} points
+                                  {assignment.questions.length} questions • {assignment.totalPoints} points
                                 </p>
                               </div>
                               <Button size="sm" variant="outline" onClick={() => handleDemo("View Assignment")}>
@@ -238,6 +239,9 @@ export default function DemoTeacher() {
                                   {plan.hasQuiz && (
                                     <Badge variant="default">Quiz Generated</Badge>
                                   )}
+                                  {plan.uploadedFile && (
+                                    <Badge variant="outline">📄 PDF</Badge>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex gap-1">
@@ -263,6 +267,20 @@ export default function DemoTeacher() {
           </Tabs>
         </motion.div>
       </div>
+
+      {/* Create Assignment Dialog */}
+      <CreateAssignmentDemo
+        open={showCreateAssignment}
+        onOpenChange={setShowCreateAssignment}
+        defaultSubject={selectedSubject}
+      />
+
+      {/* Create Lesson Plan Dialog */}
+      <CreateLessonPlanDemo
+        open={showCreateLessonPlan}
+        onOpenChange={setShowCreateLessonPlan}
+        defaultSubject={selectedSubject}
+      />
     </div>
   );
 }
