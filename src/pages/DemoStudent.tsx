@@ -1,34 +1,74 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/use-auth";
-import { LogOut, BookOpen, CheckCircle, Clock, Award } from "lucide-react";
+import { LogOut, BookOpen, CheckCircle, Clock, Award, Play } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { useState } from "react";
-import TakeAssignmentDialog from "./TakeAssignmentDialog";
 
-export default function StudentDashboard() {
-  const { user, signOut } = useAuth();
-  const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
-  
-  const assignments = useQuery(api.assignments.getPublished);
-  const submissions = useQuery(api.submissions.getByStudent);
+const mockAssignments = [
+  {
+    id: 1,
+    title: "Probability Distributions",
+    subject: "Statistics",
+    description: "Complete questions about normal and binomial distributions",
+    questions: 8,
+    points: 100,
+    status: "available",
+  },
+  {
+    id: 2,
+    title: "Data Structures Quiz",
+    subject: "Computer Science",
+    description: "Arrays, linked lists, stacks, and queues fundamentals",
+    questions: 12,
+    points: 150,
+    status: "completed",
+    score: 142,
+    percentage: 95,
+  },
+  {
+    id: 3,
+    title: "Shakespeare Analysis",
+    subject: "AP English",
+    description: "Analyze themes and literary devices in Hamlet Act 1",
+    questions: 6,
+    points: 80,
+    status: "pending",
+  },
+  {
+    id: 4,
+    title: "World War I Timeline",
+    subject: "Social Studies",
+    description: "Major events and causes leading to WWI",
+    questions: 10,
+    points: 120,
+    status: "available",
+  },
+];
 
-  const handleSignOut = async () => {
-    await signOut();
-    toast.success("Signed out successfully");
+export default function DemoStudent() {
+  const navigate = useNavigate();
+
+  const handleDemo = (action: string, assignment?: any) => {
+    if (action === "Start Assignment" && assignment) {
+      toast.success(`Starting "${assignment.title}"...`);
+      toast.info("Demo: Full assignment interface would appear here!");
+    } else if (action === "View Results" && assignment) {
+      toast.success(`Viewing results for "${assignment.title}"`);
+      toast.info(`Score: ${assignment.score}/${assignment.points} (${assignment.percentage}%)`);
+    } else {
+      toast.info(`Demo: ${action} functionality would work here with full backend!`);
+    }
   };
 
-  const getSubmissionForAssignment = (assignmentId: string) => {
-    return submissions?.find(s => s.assignmentId === assignmentId);
-  };
-
-  const completedCount = submissions?.filter(s => s.isGraded).length || 0;
-  const pendingCount = submissions?.filter(s => !s.isGraded).length || 0;
-  const availableCount = (assignments?.length || 0) - (submissions?.length || 0);
+  const availableCount = mockAssignments.filter(a => a.status === "available").length;
+  const pendingCount = mockAssignments.filter(a => a.status === "pending").length;
+  const completedCount = mockAssignments.filter(a => a.status === "completed").length;
+  const avgScore = completedCount > 0 ?
+    Math.round(mockAssignments
+      .filter(a => a.status === "completed")
+      .reduce((sum, a) => sum + (a.percentage || 0), 0) / completedCount) : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,20 +77,22 @@ export default function StudentDashboard() {
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src="/logo.svg" alt="ALYX" className="h-8 w-8" />
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">A</span>
+              </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">ALYX</h1>
-                <p className="text-sm text-muted-foreground">Student Portal</p>
+                <p className="text-sm text-muted-foreground">Student Portal - Demo</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="font-medium">{user?.name}</p>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <p className="font-medium">Demo Student</p>
+                <p className="text-sm text-muted-foreground">student@demo.com</p>
               </div>
-              <Button variant="outline" onClick={handleSignOut}>
+              <Button variant="outline" onClick={() => navigate("/")}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                Back to Home
               </Button>
             </div>
           </div>
@@ -65,7 +107,7 @@ export default function StudentDashboard() {
           className="mb-8"
         >
           <h2 className="text-3xl font-bold tracking-tight mb-2">
-            Welcome back, {user?.name?.split(' ')[0]}
+            Welcome back, Demo Student
           </h2>
           <p className="text-muted-foreground">
             Complete your assignments and track your progress.
@@ -92,7 +134,7 @@ export default function StudentDashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -128,11 +170,7 @@ export default function StudentDashboard() {
                   <Award className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {submissions?.length ? 
-                      Math.round((submissions.filter(s => s.isGraded && s.totalScore).reduce((sum, s) => sum + (s.totalScore! / s.maxScore), 0) / submissions.filter(s => s.isGraded).length) * 100) || 0
-                      : 0}%
-                  </p>
+                  <p className="text-2xl font-bold">{avgScore}%</p>
                   <p className="text-sm text-muted-foreground">Avg Score</p>
                 </div>
               </div>
@@ -152,16 +190,17 @@ export default function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {assignments?.map((assignment) => {
-                  const submission = getSubmissionForAssignment(assignment._id);
-                  const isCompleted = !!submission;
-                  const isGraded = submission?.isGraded;
+                {mockAssignments.map((assignment, index) => {
+                  const isCompleted = assignment.status === "completed";
+                  const isPending = assignment.status === "pending";
+                  const isAvailable = assignment.status === "available";
 
                   return (
                     <motion.div
-                      key={assignment._id}
+                      key={assignment.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
                       className="flex items-center justify-between p-6 border border-border/50 rounded-lg hover:shadow-sm transition-all"
                     >
                       <div className="flex-1">
@@ -169,35 +208,38 @@ export default function StudentDashboard() {
                           <h3 className="font-medium">{assignment.title}</h3>
                           <Badge variant="outline">{assignment.subject}</Badge>
                           {isCompleted && (
-                            <Badge variant={isGraded ? "default" : "secondary"}>
-                              {isGraded ? "Graded" : "Submitted"}
-                            </Badge>
+                            <Badge variant="default">Graded</Badge>
+                          )}
+                          {isPending && (
+                            <Badge variant="secondary">Submitted</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">
                           {assignment.description}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{assignment.questions.length} questions</span>
-                          <span>{assignment.totalPoints} points</span>
-                          {isGraded && submission && (
+                          <span>{assignment.questions} questions</span>
+                          <span>{assignment.points} points</span>
+                          {isCompleted && assignment.score && (
                             <span className="text-green-600 font-medium">
-                              Score: {submission.totalScore}/{submission.maxScore} 
-                              ({Math.round((submission.totalScore! / submission.maxScore) * 100)}%)
+                              Score: {assignment.score}/{assignment.points} ({assignment.percentage}%)
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {!isCompleted ? (
-                          <Button onClick={() => setSelectedAssignment(assignment)}>
+                        {isAvailable && (
+                          <Button onClick={() => handleDemo("Start Assignment", assignment)}>
+                            <Play className="h-4 w-4 mr-2" />
                             Start Assignment
                           </Button>
-                        ) : isGraded ? (
-                          <Button variant="outline" onClick={() => setSelectedAssignment(assignment)}>
+                        )}
+                        {isCompleted && (
+                          <Button variant="outline" onClick={() => handleDemo("View Results", assignment)}>
                             View Results
                           </Button>
-                        ) : (
+                        )}
+                        {isPending && (
                           <Button variant="outline" disabled>
                             Awaiting Grade
                           </Button>
@@ -206,26 +248,11 @@ export default function StudentDashboard() {
                     </motion.div>
                   );
                 })}
-
-                {!assignments?.length && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No assignments available yet.
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
-
-      {/* Take Assignment Dialog */}
-      {selectedAssignment && (
-        <TakeAssignmentDialog
-          assignment={selectedAssignment}
-          open={!!selectedAssignment}
-          onOpenChange={(open) => !open && setSelectedAssignment(null)}
-        />
-      )}
     </div>
   );
 }

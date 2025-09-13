@@ -30,7 +30,7 @@ export default function CreateLessonPlanDialog({
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
 
   const createLessonPlan = useMutation(api.lessonPlans.create);
-  const generateQuiz = useAction(api.lessonPlans_actions.generateQuizFromLessonPlan);
+  const generateQuiz = useAction((api as any).lessonPlans_actions.generateQuizFromLessonPlan);
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {

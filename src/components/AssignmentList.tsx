@@ -16,7 +16,7 @@ interface AssignmentListProps {
 export default function AssignmentList({ subject }: AssignmentListProps) {
   const assignments = useQuery(api.assignments.getBySubject, { subject });
   const publishAssignment = useMutation(api.assignments.publish);
-  const gradeAll = useAction(api.grading.gradeAllForAssignment);
+  const gradeAll = useAction((api as any).grading.gradeAllForAssignment);
   const [gradingSubmissions, setGradingSubmissions] = useState<Set<Id<"assignments">>>(new Set());
 
   const handlePublish = async (assignmentId: Id<"assignments">) => {

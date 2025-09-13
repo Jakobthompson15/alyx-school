@@ -79,9 +79,9 @@ async function gradeOpenEndedQuestion(
   studentAnswer: string,
   maxPoints: number
 ): Promise<{ score: number; feedback: string }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error("OpenRouter API key not configured");
+    throw new Error("OpenAI API key not configured");
   }
 
   const prompt = `You are an AI grading assistant. Grade the following student answer:
@@ -104,14 +104,14 @@ Respond in JSON format:
   "feedback": "<string>"
 }`;
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "openai/gpt-3.5-turbo",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "user",
@@ -119,11 +119,12 @@ Respond in JSON format:
         },
       ],
       temperature: 0.3,
+      max_tokens: 500,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.statusText}`);
+    throw new Error(`OpenAI API error: ${response.statusText}`);
   }
 
   const data = await response.json();

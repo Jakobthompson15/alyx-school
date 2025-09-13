@@ -5,9 +5,7 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 import Landing from "./pages/Landing.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import AuthPage from "./pages/Auth-demo.tsx";
-import DemoTeacher from "./pages/DemoTeacher.tsx";
-import DemoStudent from "./pages/DemoStudent.tsx";
+import AuthPage from "./pages/Auth.tsx";
 
 // Demo mode without Convex
 function RouteSyncer() {
@@ -40,8 +38,6 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/demo-teacher" element={<DemoTeacher />} />
-        <Route path="/demo-student" element={<DemoStudent />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

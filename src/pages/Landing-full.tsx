@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "react-router";
 import { BookOpen, Users, Brain, Award, ArrowRight, Globe } from "lucide-react";
 
@@ -16,10 +17,15 @@ const languages = [
 ];
 
 export default function Landing() {
+  const { isLoading, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate("/auth");
+    if (isAuthenticated && user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
   };
 
   return (
@@ -29,13 +35,11 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">A</span>
-              </div>
+              <img src="/logo.svg" alt="ALYX" className="h-8 w-8" />
               <h1 className="text-2xl font-bold tracking-tight">ALYX</h1>
             </div>
-            <Button onClick={handleGetStarted}>
-              Get Started
+            <Button onClick={handleGetStarted} disabled={isLoading}>
+              {isAuthenticated ? "Dashboard" : "Get Started"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -80,15 +84,15 @@ export default function Landing() {
                   ALYX
                 </span>
               </h2>
-
+              
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                The intelligent school interface that connects teachers and students through
+                The intelligent school interface that connects teachers and students through 
                 AI-powered assignments, automated grading, and seamless learning experiences.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-                <Button size="lg" onClick={handleGetStarted}>
-                  Get Started
+                <Button size="lg" onClick={handleGetStarted} disabled={isLoading}>
+                  {isAuthenticated ? "Go to Dashboard" : "Get Started"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button variant="outline" size="lg" onClick={() => navigate("/auth")}>
@@ -185,8 +189,8 @@ export default function Landing() {
               Join teachers and students already using ALYX to create better learning experiences.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={handleGetStarted}>
-                Start Teaching
+              <Button size="lg" onClick={handleGetStarted} disabled={isLoading}>
+                {isAuthenticated ? "Go to Dashboard" : "Start Teaching"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -199,13 +203,19 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center gap-3 mb-4 md:mb-0">
-              <div className="h-6 w-6 bg-primary rounded flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">A</span>
-              </div>
+              <img src="/logo.svg" alt="ALYX" className="h-6 w-6" />
               <span className="font-bold">ALYX</span>
             </div>
             <div className="text-sm text-muted-foreground">
-              Demo - AI-Powered Education Platform
+              Powered by{" "}
+              <a
+                href="https://vly.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-primary transition-colors"
+              >
+                vly.ai
+              </a>
             </div>
           </div>
         </div>
