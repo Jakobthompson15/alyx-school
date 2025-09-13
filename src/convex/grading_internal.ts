@@ -38,3 +38,15 @@ export const updateSubmissionGrades = internalMutation({
     });
   },
 });
+
+export const listUngradedByAssignment = internalQuery({
+  args: { assignmentId: v.id("assignments") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("submissions")
+      .withIndex("by_assignment_and_isGraded", (q) =>
+        q.eq("assignmentId", args.assignmentId).eq("isGraded", false),
+      )
+      .collect();
+  },
+});

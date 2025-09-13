@@ -20,6 +20,7 @@ import type * as grading from "../grading.js";
 import type * as grading_internal from "../grading_internal.js";
 import type * as http from "../http.js";
 import type * as lessonPlans from "../lessonPlans.js";
+import type * as lessonPlans_actions from "../lessonPlans_actions.js";
 import type * as lessonPlans_internal from "../lessonPlans_internal.js";
 import type * as seedData from "../seedData.js";
 import type * as submissions from "../submissions.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   grading_internal: typeof grading_internal;
   http: typeof http;
   lessonPlans: typeof lessonPlans;
+  lessonPlans_actions: typeof lessonPlans_actions;
   lessonPlans_internal: typeof lessonPlans_internal;
   seedData: typeof seedData;
   submissions: typeof submissions;

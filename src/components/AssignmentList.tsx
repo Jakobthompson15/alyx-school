@@ -7,6 +7,7 @@ import { Eye, Users, Play, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useState } from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 interface AssignmentListProps {
   subject: string;
@@ -15,10 +16,10 @@ interface AssignmentListProps {
 export default function AssignmentList({ subject }: AssignmentListProps) {
   const assignments = useQuery(api.assignments.getBySubject, { subject });
   const publishAssignment = useMutation(api.assignments.publish);
-  const gradeSubmission = useAction(api.grading.gradeSubmission);
-  const [gradingSubmissions, setGradingSubmissions] = useState<Set<string>>(new Set());
+  const gradeAll = useAction(api.grading.gradeAllForAssignment);
+  const [gradingSubmissions, setGradingSubmissions] = useState<Set<Id<"assignments">>>(new Set());
 
-  const handlePublish = async (assignmentId: string) => {
+  const handlePublish = async (assignmentId: Id<"assignments">) => {
     try {
       await publishAssignment({ assignmentId });
       toast.success("Assignment published successfully!");
@@ -28,31 +29,24 @@ export default function AssignmentList({ subject }: AssignmentListProps) {
     }
   };
 
-  const handleGradeAll = async (assignmentId: string) => {
+  const handleGradeAll = async (assignmentId: Id<"assignments">) => {
     try {
-      const submissions = await api.submissions.getByAssignment({ assignmentId });
-      const ungraded = submissions?.filter(s => !s.isGraded) || [];
-      
-      if (ungraded.length === 0) {
-        toast.info("No ungraded submissions found");
-        return;
-      }
+      setGradingSubmissions((prev) => new Set([...prev, assignmentId]));
+      const result = await gradeAll({ assignmentId });
 
-      setGradingSubmissions(prev => new Set([...prev, assignmentId]));
-      
-      for (const submission of ungraded) {
-        await gradeSubmission({ submissionId: submission._id });
+      if (result?.success) {
+        toast.success(`Graded ${result.graded} submissions automatically!`);
+      } else {
+        toast.error("Failed to grade submissions");
       }
-      
-      toast.success(`Graded ${ungraded.length} submissions automatically!`);
     } catch (error) {
       console.error("Failed to grade submissions:", error);
       toast.error("Failed to grade submissions");
     } finally {
-      setGradingSubmissions(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(assignmentId);
-        return newSet;
+      setGradingSubmissions((prev) => {
+        const next = new Set(prev);
+        next.delete(assignmentId);
+        return next;
       });
     }
   };

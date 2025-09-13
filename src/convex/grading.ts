@@ -143,3 +143,81 @@ Respond in JSON format:
     throw new Error("Invalid AI response format");
   }
 }
+
+// New: grade all submissions for a given assignment
+export const gradeAllForAssignment: any = action({
+  args: { assignmentId: v.id("assignments") },
+  handler: async (ctx, args): Promise<{ success: boolean; graded: number; error?: string }> => {
+    const ungraded = await ctx.runQuery(internal.grading_internal.listUngradedByAssignment, {
+      assignmentId: args.assignmentId,
+    });
+
+    let graded = 0;
+
+    for (const s of ungraded) {
+      const submission: any = await ctx.runQuery(internal.grading_internal.getSubmissionDetails, {
+        submissionId: s._id,
+      });
+      if (!submission || submission.isGraded) continue;
+
+      const gradedAnswers: Array<{
+        questionId: string;
+        answer: string;
+        isCorrect: boolean;
+        points: number;
+        feedback: string;
+      }> = [];
+      let totalScore = 0;
+
+      for (const answer of submission.answers) {
+        const question = submission.assignment.questions.find((q: any) => q.id === answer.questionId);
+        if (!question) continue;
+
+        let isCorrect = false;
+        let points = 0;
+        let feedback = "";
+
+        if (question.type === "multiple_choice") {
+          isCorrect = answer.answer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+          points = isCorrect ? question.points : 0;
+          feedback = isCorrect ? "Correct!" : `Incorrect. The correct answer is: ${question.correctAnswer}`;
+        } else if (question.type === "open_ended") {
+          try {
+            const aiGrading = await gradeOpenEndedQuestion(
+              question.question,
+              question.correctAnswer,
+              answer.answer,
+              question.points,
+            );
+            isCorrect = aiGrading.score >= question.points * 0.7;
+            points = aiGrading.score;
+            feedback = aiGrading.feedback;
+          } catch (error) {
+            console.error("AI grading failed:", error);
+            points = question.points * 0.5;
+            feedback = "Auto-grading unavailable. Partial credit given. Teacher review needed.";
+          }
+        }
+
+        gradedAnswers.push({
+          questionId: answer.questionId,
+          answer: answer.answer,
+          isCorrect,
+          points,
+          feedback,
+        });
+        totalScore += points;
+      }
+
+      await ctx.runMutation(internal.grading_internal.updateSubmissionGrades, {
+        submissionId: s._id,
+        answers: gradedAnswers,
+        totalScore,
+      });
+
+      graded++;
+    }
+
+    return { success: true, graded };
+  },
+});

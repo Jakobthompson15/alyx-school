@@ -14,7 +14,7 @@ interface LessonPlanListProps {
 
 export default function LessonPlanList({ subject }: LessonPlanListProps) {
   const lessonPlans = useQuery(api.lessonPlans.getByTeacher);
-  const generateQuiz = useAction(api.lessonPlans.generateQuizFromLessonPlan);
+  const generateQuiz = useAction(api.lessonPlans_actions.generateQuizFromLessonPlan);
   const [generatingQuizzes, setGeneratingQuizzes] = useState<Set<string>>(new Set());
 
   const filteredPlans = lessonPlans?.filter(plan => plan.subject === subject) || [];

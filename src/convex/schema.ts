@@ -99,7 +99,8 @@ const schema = defineSchema(
       gradedAt: v.optional(v.number()),
     }).index("by_assignment", ["assignmentId"])
       .index("by_student", ["studentId"])
-      .index("by_assignment_and_student", ["assignmentId", "studentId"]),
+      .index("by_assignment_and_student", ["assignmentId", "studentId"])
+      .index("by_assignment_and_isGraded", ["assignmentId", "isGraded"]),
 
     lessonPlans: defineTable({
       title: v.string(),
